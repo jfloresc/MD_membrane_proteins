@@ -83,7 +83,7 @@ def isAtom(line):
   return False
 
 def isCard(line):
-  nums = line[0:3]).strip()
+  nums = line[0:3].strip()
   cards = ['TER','END']
   if (nums in cards):
     return True
