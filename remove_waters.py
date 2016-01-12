@@ -60,22 +60,25 @@ class MainException(Exception):
         return self.msg
 
 def getX(line):
-  float_n = float(line[30:38])
-  if (isinstance(float_n,float)):
+  try:
+    float_n = float(line[30:38])
     return float_n
-  raise MainException("atom column coordinates in PDB file are not well formatted")
+  except:
+    raise MainException("atom column coordinates in PDB file are not well formatted")
   
 def getY(line):
-  float_n = float(line[38:46])
-  if (isinstance(float_n,float)):
+  try:
+    float_n = float(line[38:46])
     return float_n
-  raise MainException("atom column coordinates in PDB file are not well formatted")
+  except:
+    raise MainException("atom column coordinates in PDB file are not well formatted")
 
 def getZ(line):
-  float_n = float(line[46:54])
-  if (isinstance(float_n,float)):
+  try:
+    float_n = float(line[46:54])
     return float_n
-  raise MainException("atom column coordinates in PDB file are not well formatted")
+  except:
+    raise MainException("atom column coordinates in PDB file are not well formatted")
   
 def isAtom(line):
   if (line[0:6]=='ATOM  '):
