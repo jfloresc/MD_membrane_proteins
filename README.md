@@ -7,4 +7,7 @@ Examples are provided in the script remove_waters.py, such as:
 ./remove_waters.py -p proteinmemb.pdb -o out -s "resname LA PC" 
 
 Extra features will be added soon.
+
+Various python scripts that calculate PCA, RMSD, and RMSF plots. It uses MDtraj, numpy and scikit-learn.
+
 Jose Flores-Canales
