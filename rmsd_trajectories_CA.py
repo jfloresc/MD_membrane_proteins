@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # calculate rmsd plots relative to two references
+# written by Jose Flores-Canales, 06/2016
  
 import sys
 import os

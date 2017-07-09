@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Calculate allosteric networks in MD runs based on Dokholyan N.V. Chem. Rev. 2016, 116, 6463-6487.
+# written by Jose Flores-Canales, 19/01/2017
 
 from __future__ import print_function
 import matplotlib.pyplot as plt

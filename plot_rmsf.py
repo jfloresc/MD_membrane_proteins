@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # calculate RMSF plots for MD trajectories
+# written by Jose Flores-Canales, 22/02/2017
 
 from __future__ import print_function
 import numpy as np

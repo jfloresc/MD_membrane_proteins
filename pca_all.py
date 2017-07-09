@@ -4,6 +4,7 @@
 # plots 2D plots on the first 2 PC vectors
 # plots variance
 # plots RMSD mode weighted plots of the first 2 PC vectors 
+# written by Jose Flores-Canales 08/2016
 
 
 from __future__ import print_function
