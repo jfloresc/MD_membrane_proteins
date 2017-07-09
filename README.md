@@ -8,6 +8,6 @@ Examples are provided in the script remove_waters.py, such as:
 
 Extra features will be added soon.
 
-Various python scripts that calculate PCA, Allosteric Networks, RMSD, and RMSF plots. It uses MDtraj, Networkx, numpy and scikit-learn.
+Various python scripts to calculate PCA, Allosteric Networks, RMSD, and RMSF plots. It uses MDtraj, Networkx, numpy and scikit-learn.
 
 Jose Flores-Canales
