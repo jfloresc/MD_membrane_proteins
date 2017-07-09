@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# loads multiple trajectories and aligns them relative to a reference pdb structure
+# prints trajectories in the first 2 PC vectors
+# plots 2D plots on the first 2 PC vectors
+# plots variance
+# plots RMSD mode weighted plots of the first 2 PC vectors 
+
 
 from __future__ import print_function
 import mdtraj as md
