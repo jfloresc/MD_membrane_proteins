@@ -10,4 +10,4 @@ Extra features will be added soon.
 
 Various python scripts to calculate PCA, Allosteric Networks, RMSD, and RMSF plots. It uses MDtraj, Networkx, numpy and scikit-learn.
 
-Jose Flores-Canales
+Written by Jose Flores-Canales
