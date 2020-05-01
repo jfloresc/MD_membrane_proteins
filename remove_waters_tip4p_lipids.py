@@ -19,6 +19,7 @@
 #									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" -u 10 -w 10
 #									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" -f 1
 #									./remove_waters.py -p input.pdb -o mod -s "resid 1 to 2000" -n  12000
+#									./remove_waters.py -p input.pdb -o mod -s "WAT" -n  12000
 # jose flores-canales 12/26/2014
 # REV 1, jose flores-canales 01/11/2016, implemented reading of standard PDB formats
 # REV 2, jose flores-canales 03/21/2016, added option to remove lipids outside of the waterbox XY dimensions
