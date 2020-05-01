@@ -14,43 +14,43 @@ from sklearn.decomposition import PCA
 import numpy as np
 
 def correlation_numpy(A, n_frames, n_atoms):
-  #3000, 54, 3
-  print("size of traj: ", A.shape)
-  MA=np.mean(A, axis=0)
-  print("mean(A): ", MA.shape)
-  M = (A-MA) # subtract the mean (along columns)
+	#3000, 54, 3
+	print("size of traj: ", A.shape)
+	MA=np.mean(A, axis=0)
+	print("mean(A): ", MA.shape)
+	M = (A-MA) # subtract the mean (along columns)
 #14000, 1050
-  print("M=A-MA.T: ", M.shape)
+	print("M=A-MA.T: ", M.shape)
 #1050,
-  M = M.reshape(n_frames,n_atoms*3)
-  MT = np.memmap('mt.npy',dtype=np.float64,mode='w+',shape=(n_atoms*3,n_frames))
-  MT[:] = M.T[:]
-  cov_nn = np.memmap('covnn.npy',dtype=np.float64,mode='w+',shape=(n_atoms*3,n_atoms*3))
-  cov_nn[:] = MT.dot(M)[:]/n_frames
-  #cov_nn = np.tensordot(M,MT,axes=(-1,-1))/n_frames
-  diag = np.copy(cov_nn.diagonal())
-  for i in xrange(n_atoms*3):
-    for j in xrange(n_atoms*3):
-      cov_nn[i,j] = cov_nn[i,j]/np.sqrt(diag[i]*diag[j])
-  return cov_nn
+	M = M.reshape(n_frames,n_atoms*3)
+	MT = np.memmap('mt.npy',dtype=np.float64,mode='w+',shape=(n_atoms*3,n_frames))
+	MT[:] = M.T[:]
+	cov_nn = np.memmap('covnn.npy',dtype=np.float64,mode='w+',shape=(n_atoms*3,n_atoms*3))
+	cov_nn[:] = MT.dot(M)[:]/n_frames
+	#cov_nn = np.tensordot(M,MT,axes=(-1,-1))/n_frames
+	diag = np.copy(cov_nn.diagonal())
+	for i in xrange(n_atoms*3):
+		for j in xrange(n_atoms*3):
+			cov_nn[i,j] = cov_nn[i,j]/np.sqrt(diag[i]*diag[j])
+	return cov_nn
 
 def slice_before_load(netcdf, prmtop):
-  topology = md.load_topology(prmtop)
-  with md.open(netcdf) as f:
-    f.seek(START)
-    t = f.read_as_traj(
-      topology, n_frames=STOP-START, stride=STRIDE
-    )
-    print(t)
-    return t
+	topology = md.load_topology(prmtop)
+	with md.open(netcdf) as f:
+		f.seek(START)
+		t = f.read_as_traj(
+			topology, n_frames=STOP-START, stride=STRIDE
+		)
+		print(t)
+		return t
 
 def get_average_structure(traj):
-  n_frames = traj.n_frames 
-  n_atoms = traj.n_atoms
-  average = np.zeros((n_atoms,3))
-  for frame in xrange(n_frames):
-    average += traj.xyz[frame] 
-  return average/n_frames
+	n_frames = traj.n_frames 
+	n_atoms = traj.n_atoms
+	average = np.zeros((n_atoms,3))
+	for frame in xrange(n_frames):
+		average += traj.xyz[frame] 
+	return average/n_frames
 
 START = 1 
 STOP = 65000
@@ -252,7 +252,7 @@ plt.rcParams.update({u'font.size': 10})
 plt.figure(figsize=(4,3))
 symbols=['o','v','^','<','>','8','s','p','*','x']
 for a in xrange(10):
-  plt.scatter(all_r2[a][:, 0], all_r2[a][:,1], marker=symbols[a],c= colors_list[a],s=10,edgecolors='none',label='T%s'%(a+1))#c=all_t[a])
+	plt.scatter(all_r2[a][:, 0], all_r2[a][:,1], marker=symbols[a],c= colors_list[a],s=10,edgecolors='none',label='T%s'%(a+1))#c=all_t[a])
 plt.scatter(scores_atp[:, 0], scores_atp[:,1], marker='<',c= 'darkorange',s=40,edgecolors='none')#c=all_t[a])
 plt.scatter(scores_adp[:, 0], scores_adp[:,1], marker='d',c= 'darkgreen',s=40,edgecolors='none')#c=all_t[a])
 plt.tick_params(axis='both', which='major', labelsize=7)
@@ -279,7 +279,7 @@ line3, = plt.plot(x,loadings3,'r+-',lw=1.5,label='PC3')
 #leg = plt.legend(handles=[line1, line2,line3])
 leg = plt.legend(handles=[line3])
 for legobj in leg.legendHandles:
-  legobj.set_linewidth(1.5)
+	legobj.set_linewidth(1.5)
 plt.legend(loc='best',frameon=True)
 plt.xlabel('Variables')
 plt.ylabel('Loadings')
@@ -315,7 +315,7 @@ line2, = plt.plot(x,rmsd2,'b--',lw=1.5,label='PC2')
 leg = plt.legend(handles=[line1, line2])
 #leg = plt.legend(handles=[line3])
 for legobj in leg.legendHandles:
-  legobj.set_linewidth(1.5)
+	legobj.set_linewidth(1.5)
 plt.legend(loc='best',frameon=True)
 plt.xlabel('Residue Index')
 plt.ylabel(r'Weighted RMSD Modes ($\AA$)')

@@ -10,84 +10,84 @@ import matplotlib.patches as patches
 from scipy import stats
 
 def moving_test(x,y,size): 
-  p = []
-  for i in xrange(0,len(x),1):
-    x_temp = x[i:i+size]
-    y_temp = y[i:i+size]  
-    if len(x_temp) != size or len(y_temp) != size:
-      continue
-    else:
-      #f_temp, p_temp = stats.f_oneway(x_temp,y_temp)  
-      f_temp, p_temp = stats.ttest_ind(x_temp,y_temp,equal_var=True)  
-      p.append(p_temp)
-  n = len(p)
-  x = list(xrange(17,17+n))
-  p = np.array(p)
-  for i in xrange(n):
-    if p[i] < 0.01:
-      p[i] = 0.25 
-    else:
-      p[i] = np.nan
-  return x,p
+	p = []
+	for i in xrange(0,len(x),1):
+		x_temp = x[i:i+size]
+		y_temp = y[i:i+size]	
+		if len(x_temp) != size or len(y_temp) != size:
+			continue
+		else:
+			#f_temp, p_temp = stats.f_oneway(x_temp,y_temp)  
+			f_temp, p_temp = stats.ttest_ind(x_temp,y_temp,equal_var=True)	
+			p.append(p_temp)
+	n = len(p)
+	x = list(xrange(17,17+n))
+	p = np.array(p)
+	for i in xrange(n):
+		if p[i] < 0.01:
+			p[i] = 0.25 
+		else:
+			p[i] = np.nan
+	return x,p
 
 def average(x):
-  assert len(x) > 0
-  #print( x)
-  return float(np.sum(x)) / float(len(x))
+	assert len(x) > 0
+	#print( x)
+	return float(np.sum(x)) / float(len(x))
 
 def pearson_def(x, y):
-  assert len(x) == len(y)
-  n = len(x)
-  assert n > 0
-  avg_x = average(x)
-  avg_y = average(y)
-  diffprod = 0.
-  xdiff2 = 0.
-  ydiff2 = 0.
-  for idx in range(n):
-    xdiff = x[idx] - avg_x
-    ydiff = y[idx] - avg_y
-    diffprod += xdiff * ydiff
-    xdiff2 += xdiff * xdiff
-    ydiff2 += ydiff * ydiff
+	assert len(x) == len(y)
+	n = len(x)
+	assert n > 0
+	avg_x = average(x)
+	avg_y = average(y)
+	diffprod = 0.
+	xdiff2 = 0.
+	ydiff2 = 0.
+	for idx in range(n):
+		xdiff = x[idx] - avg_x
+		ydiff = y[idx] - avg_y
+		diffprod += xdiff * ydiff
+		xdiff2 += xdiff * xdiff
+		ydiff2 += ydiff * ydiff
 
-  return diffprod / np.sqrt(xdiff2 * ydiff2)
+	return diffprod / np.sqrt(xdiff2 * ydiff2)
 
 def rmsf(traj):
-  ave_coord1, ave_sqr_coord1 =  get_average_structure(traj)
-  rmsf=np.sqrt(np.sum(ave_sqr_coord1-ave_coord1*ave_coord1,axis=1))
-  bfactor = rmsf*rmsf*8.*np.pi*np.pi/3.
-  dict_rmsf = {}
-  dict_bfactor = {}
-  i = 17
-  for r,b in zip(rmsf,bfactor):
-    dict_rmsf[i] = r
-    dict_bfactor[i] = b 
-    i+=1
-  return dict_rmsf, rmsf, dict_bfactor, bfactor
+	ave_coord1, ave_sqr_coord1 = get_average_structure(traj)
+	rmsf=np.sqrt(np.sum(ave_sqr_coord1-ave_coord1*ave_coord1,axis=1))
+	bfactor = rmsf*rmsf*8.*np.pi*np.pi/3.
+	dict_rmsf = {}
+	dict_bfactor = {}
+	i = 17
+	for r,b in zip(rmsf,bfactor):
+		dict_rmsf[i] = r
+		dict_bfactor[i] = b 
+		i+=1
+	return dict_rmsf, rmsf, dict_bfactor, bfactor
 
 def read_pdb(pdb,chain):
-  with open(pdb,'r') as f:
-    lines = f.readlines()
-  bfactor = {}
-  for i in xrange(17,367):
-    bfactor[i] = np.nan 
+	with open(pdb,'r') as f:
+		lines = f.readlines()
+	bfactor = {}
+	for i in xrange(17,367):
+		bfactor[i] = np.nan 
 
-  for line in lines:
-    flag = line[16:17]==' ' or line[16:17]=='A'
-    if (flag and line[0:6]=='ATOM  ' and line[12:16].strip() == 'CA' and line[21:22]==chain):
-      bfactor[int(line[22:26].strip())] = float(line[60:66].strip())
-  return bfactor, np.array([bfactor[i] for i in xrange(17,367)])
+	for line in lines:
+		flag = line[16:17]==' ' or line[16:17]=='A'
+		if (flag and line[0:6]=='ATOM  ' and line[12:16].strip() == 'CA' and line[21:22]==chain):
+			bfactor[int(line[22:26].strip())] = float(line[60:66].strip())
+	return bfactor, np.array([bfactor[i] for i in xrange(17,367)])
 
 def get_average_structure(traj):
-  n_frames = traj.n_frames 
-  n_atoms = traj.n_atoms
-  average = np.zeros((n_atoms,3))
-  average2 = np.zeros((n_atoms,3))
-  for frame in xrange(n_frames):
-    average += traj.xyz[frame]*10. 
-    average2 += traj.xyz[frame]*traj.xyz[frame]*100. 
-  return average/n_frames,average2/n_frames
+	n_frames = traj.n_frames 
+	n_atoms = traj.n_atoms
+	average = np.zeros((n_atoms,3))
+	average2 = np.zeros((n_atoms,3))
+	for frame in xrange(n_frames):
+		average += traj.xyz[frame]*10. 
+		average2 += traj.xyz[frame]*traj.xyz[frame]*100. 
+	return average/n_frames,average2/n_frames
 
 t1 = md.load('/net/jfloresc/kinesin_Model1/run1_T310_c0.1_v0.6_long/T0EG5.dcd',top='ADP65_ATP35_b0.2_ftrue_T310_16_restart/T0EG5.pdb')
 t2 = md.load('/net/jfloresc/kinesin_Model1/ADP_like/run1_T310_c0.1_v0.6_long/T0EG5.dcd',top='ADP65_ATP35_b0.2_ftrue_T310_16_restart/T0EG5.pdb')
@@ -116,39 +116,39 @@ rmsf_b1, rmsf_b2 = [],[]
 
 factor=7.
 for i in xrange(17,367):
-  if (i >=271 and i <=280) or i>=350: #== 366: 
-    b_xrayb2.append(np.nan)
-    sim_b2.append(np.nan)
-    rmsf_b2.append(dict_rmsf_t2[i])
-    continue
-  elif i==88 or i ==141 or i==205: 
-    temp_sim_b2.append(dict_bfactor_t2[i])
-    temp_xrayb2.append(dict_b2[i])
+	if (i >=271 and i <=280) or i>=350: #== 366: 
+		b_xrayb2.append(np.nan)
+		sim_b2.append(np.nan)
+		rmsf_b2.append(dict_rmsf_t2[i])
+		continue
+	elif i==88 or i ==141 or i==205: 
+		temp_sim_b2.append(dict_bfactor_t2[i])
+		temp_xrayb2.append(dict_b2[i])
 
-    b_xrayb2.append(dict_b2[i])
-    sim_b2.append(dict_bfactor_t2[i]/factor)
-    rmsf_b2.append(dict_rmsf_t2[i])
-  else:
-    temp_sim_b2.append(dict_bfactor_t2[i])
-    temp_xrayb2.append(dict_b2[i])
-    temp_sim_b2_no.append(dict_bfactor_t2[i])
-    temp_xrayb2_no.append(dict_b2[i])
+		b_xrayb2.append(dict_b2[i])
+		sim_b2.append(dict_bfactor_t2[i]/factor)
+		rmsf_b2.append(dict_rmsf_t2[i])
+	else:
+		temp_sim_b2.append(dict_bfactor_t2[i])
+		temp_xrayb2.append(dict_b2[i])
+		temp_sim_b2_no.append(dict_bfactor_t2[i])
+		temp_xrayb2_no.append(dict_b2[i])
 
-    b_xrayb2.append(dict_b2[i])
-    sim_b2.append(dict_bfactor_t2[i]/factor)
-    rmsf_b2.append(dict_rmsf_t2[i])
+		b_xrayb2.append(dict_b2[i])
+		sim_b2.append(dict_bfactor_t2[i]/factor)
+		rmsf_b2.append(dict_rmsf_t2[i])
 
 for i in xrange(17,367):
-  temp_sim_b1.append(dict_bfactor_t1[i])
-  temp_xrayb1.append(dict_b1[i])
-  b_xrayb1.append(dict_b1[i])
-  sim_b1.append(dict_bfactor_t1[i]/factor)
-  rmsf_b1.append(dict_rmsf_t1[i])
-  if i==88 or i ==141 or i==205: 
-    continue
-  else:
-    temp_sim_b1_no.append(dict_bfactor_t1[i])
-    temp_xrayb1_no.append(dict_b1[i])
+	temp_sim_b1.append(dict_bfactor_t1[i])
+	temp_xrayb1.append(dict_b1[i])
+	b_xrayb1.append(dict_b1[i])
+	sim_b1.append(dict_bfactor_t1[i]/factor)
+	rmsf_b1.append(dict_rmsf_t1[i])
+	if i==88 or i ==141 or i==205: 
+		continue
+	else:
+		temp_sim_b1_no.append(dict_bfactor_t1[i])
+		temp_xrayb1_no.append(dict_b1[i])
 ###############################################################################
 p1_coef = stats.pearsonr(xray_b1,bfactor_t1)
 p2_coef = stats.pearsonr(xray_b2,bfactor_t2)
@@ -162,8 +162,8 @@ print("pearson ADP",p2_coef2, "pearson ADP no P88, H141, H205",p2_coef2_no)
 
 x_p,p_value = moving_test(rmsf_b1,rmsf_b2,3) 
 for i,j in zip(x_p,p_value):
-  if not np.isnan(j):
-    print(i,j)
+	if not np.isnan(j):
+		print(i,j)
 ###############################################################################
 
 
@@ -190,7 +190,7 @@ plt.text(141, 52,'H141', ha='center', va='center', size=10)
 plt.text(220, 52,'H205', ha='center', va='center', size=10)
 leg = ax1.legend(handles=[line1, line2])
 for legobj in leg.legendHandles:
-  legobj.set_linewidth(1.5)
+	legobj.set_linewidth(1.5)
 ax1.legend(loc='best',frameon=True)
 ax2 = fig.add_subplot(2, 1, 2)
 line3, = ax2.plot(x,sim_b2,lw=1.5,color='k',label='Sim.')
@@ -205,7 +205,7 @@ plt.text(205, 84,'H205', ha='center', va='center', size=10)
 ax2.legend(loc='best',frameon=True)
 leg = ax2.legend(handles=[line3, line4])
 for legobj in leg.legendHandles:
-  legobj.set_linewidth(1.5)
+	legobj.set_linewidth(1.5)
 
 ax1.tick_params(axis='both', which='major', labelsize=7)
 ax1.tick_params(axis='both', which='minor', labelsize=4)
@@ -224,7 +224,7 @@ line2, = ax.plot(x,rmsf_b2,'b--',lw=1.5,label='ADP')
 #line3, = ax.plot(x_p,p_value,'r',lw=1.5,label='p')
 leg = ax.legend(handles=[line1, line2])
 for legobj in leg.legendHandles:
-  legobj.set_linewidth(1.5)
+	legobj.set_linewidth(1.5)
 ax.add_patch(patches.Rectangle((22,0.15),3,0.2))
 ax.add_patch(patches.Rectangle((59,0.15),3,0.2))
 ax.add_patch(patches.Rectangle((90,0.15),6,0.2))# 94
@@ -251,7 +251,7 @@ ax.set_xlim([16,367])
 ax.set_ylim([0,7])
 ax.set_xticks(np.arange(17,368,15))
 for label in ax.get_xticklabels()[1::2]:
-  label.set_visible(False)
+	label.set_visible(False)
 ax.set_xlabel('Residue Index')
 ax.set_ylabel(r'RMSF ($\AA$)')
 nameout='rmsf_atp_adp'
