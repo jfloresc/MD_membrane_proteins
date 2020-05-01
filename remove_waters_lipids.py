@@ -86,7 +86,7 @@ def getZ(line):
 		raise MainException("atom column coordinates in PDB file are not well formatted")
 	
 def isAtom(line):
-	if (line[0:6]=='ATOM	'):
+	if (line[0:6]=='ATOM  '):
 		return True
 	return False
 
