@@ -11,15 +11,15 @@
 #									 buffer_down = -1 (default -1). If assigned a value then that would be the bottom water thickness
 #									 fit_lipids = 1 or 0 (default 0). If 1 then lipids outside the water box will be removed 
 #
-#									./remove_waters.py -p input.pdb -o mod -s selection -r radius -d control_depth_water -u buffer_up -w buffer_down 
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s selection -r radius -d control_depth_water -u buffer_up -w buffer_down 
 #  Examples:
-#									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" 
-#									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" -r 6.0 -d 6.0 
-#									./remove_waters.py -p input.pdb -o mod -s "resid 1 to 624" -r 6.0 -d 6.0 -u 12 -w 10
-#									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" -u 10 -w 10
-#									./remove_waters.py -p input.pdb -o mod -s "resname LA PC" -f 1
-#									./remove_waters.py -p input.pdb -o mod -s "resid 1 to 2000" -n  12000
-#									./remove_waters.py -p input.pdb -o mod -s "WAT" -n  12000
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" 
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" -r 6.0 -d 6.0 
+#									./remove_waters.py -p input.pdb -t tip3p -o mod -s "resid 1 to 624" -r 6.0 -d 6.0 -u 12 -w 10
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" -u 10 -w 10
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" -f 1
+#									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resid 1 to 2000" -n  12000
+#									./remove_waters.py -p input.pdb -t tip3p -o mod -s "WAT" -n  12000
 # jose flores-canales 12/26/2014
 # REV 1, jose flores-canales 01/11/2016, implemented reading of standard PDB formats
 # REV 2, jose flores-canales 03/21/2016, added option to remove lipids outside of the waterbox XY dimensions
@@ -41,17 +41,19 @@ def parse_cmdline(cmdlineArgs):
 	parser.add_option("-p", "--pdbfile", action="store", dest="pdbFile")
 	parser.add_option("-o", "--prefix", action="store", dest="mod")
 	parser.add_option("-s", "--selection", action="store", dest="sel")
-	parser.add_option("-r", "--radius", action="store", dest="radius",default=6.0, type="float", help = "[default: %default]")
-	parser.add_option("-d", "--depth", action="store", dest="depth",default=6.0, type="float", help = "[default: %default]")
-	parser.add_option("-u", "--bufferup", action="store", dest="buffup",default=-1, type="float", help = "water thickness [default: %default]")
-	parser.add_option("-w", "--bufferdown", action="store", dest="buffdown",default=-1, type="float", help = "water thickness [default: %default]")
-	parser.add_option("-f", "--fitlipids", action="store", dest="fitlipid",default=0, type="int", help = "flag (1 or 0) to fit water box XY dimensions to lipid patch [default: %default]")
-	parser.add_option("-n", "--keep", action="store", dest="keep",default=-1, type="int", help = "number of waters to keep [default: %default]")
+	parser.add_option("-t", "--type", action="store", dest="tip", default="tip3p", type="str", help = "tip3p or tip4p [default :%default]")
+	parser.add_option("-r", "--radius", action="store", dest="radius", default=6.0, type="float", help = "[default: %default]")
+	parser.add_option("-d", "--depth", action="store", dest="depth", default=6.0, type="float", help = "[default: %default]")
+	parser.add_option("-u", "--bufferup", action="store", dest="buffup", default=-1, type="float", help = "water thickness [default: %default]")
+	parser.add_option("-w", "--bufferdown", action="store", dest="buffdown", default=-1, type="float", help = "water thickness [default: %default]")
+	parser.add_option("-f", "--fitlipids", action="store", dest="fitlipid", default=0, type="int", help = "flag (1 or 0) to fit water box XY dimensions to lipid patch [default: %default]")
+	parser.add_option("-n", "--keep", action="store", dest="keep", default=-1, type="int", help = "number of waters to keep [default: %default]")
 
 	opts, args = parser.parse_args(cmdlineArgs)
 	pdbFile = opts.pdbFile
 	mod = opts.mod
 	sel = opts.sel
+	tip = opts.tip
 	rad = opts.radius
 	depth = opts.depth
 	buffup = opts.buffup
@@ -62,7 +64,7 @@ def parse_cmdline(cmdlineArgs):
 	if (pdbFile == None) or (mod == None) or (sel == None):
 		parser.print_help()
 		exit()
-	return pdbFile, mod, sel, rad, depth, buffup, buffdown, fitlipid, keep_nwaters
+	return pdbFile, mod, sel, tip, rad, depth, buffup, buffdown, fitlipid, keep_nwaters
 
 
 class MainException(Exception):
@@ -225,7 +227,8 @@ def isWater(string):
 		return True
 	return False
 
-def findmolwaters(name_file):
+def findmolwaters(name_file, type_n=3):
+	# the default water type is tip3p, type_n = 3
 	with open(name_file,'r') as infile:
 		lines_infile = infile.readlines()
 
@@ -235,9 +238,9 @@ def findmolwaters(name_file):
 			if (isWater(line)):
 				n+=1
 	# divided by 3 for tip3p or 4 for tip4p based models
-	return int(n/4)
+	return int(n/type_n)
 
-def removeWaterBuf(name_file, selection, max_coord, min_coord, radius, thick_up, thick_down, depth, fit_lipid_flag, max_sel_w, min_sel_w):
+def removeWaterBuf(name_file, selection, max_coord, min_coord, radius, thick_up, thick_down, depth, fit_lipid_flag, max_sel_w, min_sel_w, type_n):
 	with open(name_file,'r') as infile:
 		lines_infile = infile.readlines()
 	j,flag_print = 0,0
@@ -253,7 +256,7 @@ def removeWaterBuf(name_file, selection, max_coord, min_coord, radius, thick_up,
 				templines.append(line)
 				j+=1
 				# j = 3 for TIP3P, 4 for TIP4P
-				if (j==4):
+				if (j == type_n):
 				# modify or add a new function instead of isInsideBox for more complicated solvation boxes
 					if (isInsideBoxBuffer(max_coord, min_coord, tempx, tempy, tempz, radius, thick_up, thick_down, depth)):
 						[lines.append(i) for i in templines]
@@ -285,7 +288,7 @@ def removeWaterBuf(name_file, selection, max_coord, min_coord, radius, thick_up,
 	return lines
 
 
-def removeWater(name_file, selection, max_coord, min_coord, radius, depth, fit_lipid_flag, max_sel_w, min_sel_w):
+def removeWater(name_file, selection, max_coord, min_coord, radius, depth, fit_lipid_flag, max_sel_w, min_sel_w, type_n):
 	with open(name_file,'r') as infile:
 		lines_infile = infile.readlines()
 	j, flag_print = 0, 0
@@ -301,7 +304,7 @@ def removeWater(name_file, selection, max_coord, min_coord, radius, depth, fit_l
 				templines.append(line)
 				j+=1
 				# j = 3 for TIP3P, 4 for TIP4P
-				if (j==4):
+				if (j == type_n):
 				# modify or add a new function instead of isInsideBox for more complicated solvation boxes
 					if (isInsideBox(max_coord, min_coord, tempx, tempy,tempz, radius, depth)):
 						[lines.append(i) for i in templines]
@@ -332,7 +335,7 @@ def removeWater(name_file, selection, max_coord, min_coord, radius, depth, fit_l
 	return lines
 
 
-def downsizeWater(name_file, sel, diff_w, delta):
+def downsizeWater(name_file, sel, diff_w, delta, type_n):
 	with open(name_file,'r') as infile:
 		lines_infile = infile.readlines()
 
@@ -351,7 +354,7 @@ def downsizeWater(name_file, sel, diff_w, delta):
 					templines.append(line)
 					j+=1
 					# j = 3 for TIP3P, 4 for TIP4P
-					if (j==4):
+					if (j == type_n):
 					# modify or add a new function instead of isInsideBox for more complicated solvation boxes
 						if isInsidePeelingBox(max_sel_w, min_sel_w, tempx, tempy, tempz, delta) or removed_w >= diff_w:
 							[lines.append(i) for i in templines]
@@ -380,36 +383,44 @@ def print_object(filename, text):
 		file_out.writelines(text)
 
 
-def main_func(filename, sel, tag, radius, thick_up, thick_down, depth, fit_lipid_flag, keep_nwaters):
-	waters = findmolwaters(filename)
+def main_func(filename, sel, type_water, tag, radius, thick_up, thick_down, depth, fit_lipid_flag, keep_nwaters):
+
+	if type_water.lower() == "tip3p":
+		type_n = 3
+	elif type_water.lower() == "tip4p":
+		type_n = 4
+	else:
+		raise MainException("ERROR: choose tip3p or tip4p for water type")
+
+	waters = findmolwaters(filename, type_n)
 	print("Initial number of waters: ", waters)
 	max_sel, min_sel = findmaxmin(filename, sel)
 
 	water_res = "WAT"
 	max_sel_w, min_sel_w = findmaxmin(filename, water_res)
 	
+
 	if keep_nwaters != -1:
 		print("Warning: Keep # waters option -n is being used, other options are ignored\n")
 
 		diff_w = waters - keep_nwaters
 		if diff_w < 0:
-			print("ERROR: Number of waters to keep larger than #waters in the pdb file\n")
-			exit(1)
+			raise MainException("ERROR: Number of waters to keep larger than #waters in the pdb file")
 
 		delta = 0.1
-		toprint = downsizeWater(filename, sel, diff_w, delta)
+		toprint = downsizeWater(filename, sel, diff_w, delta, type_n)
 		
 # max_sel and min_sel could be defined manually  
 	elif (thick_up == -1 and thick_down == -1 and keep_nwaters == -1):
-		toprint = removeWater(filename, sel, max_sel, min_sel, radius, depth, fit_lipid_flag, max_sel_w, min_sel_w)
+		toprint = removeWater(filename, sel, max_sel, min_sel, radius, depth, fit_lipid_flag, max_sel_w, min_sel_w, type_n)
 	elif (thick_up > -1 and thick_down > -1 and keep_nwaters == -1):
-		toprint = removeWaterBuf(filename, sel, max_sel, min_sel, radius, thick_up, thick_down, depth, fit_lipid_flag, max_sel_w, min_sel_w)
+		toprint = removeWaterBuf(filename, sel, max_sel, min_sel, radius, thick_up, thick_down, depth, fit_lipid_flag, max_sel_w, min_sel_w, type_n)
 	else:
 		raise MainException("wrong values of water thickness parameters")  
 
 	file_out = addPrefix(filename, tag)
 	print_object(file_out, toprint)
-	waters = findmolwaters(file_out)
+	waters = findmolwaters(file_out, type_n)
 	print("Final number of waters: ", waters)
 
 ###########################################################
@@ -418,8 +429,8 @@ def main_func(filename, sel, tag, radius, thick_up, thick_down, depth, fit_lipid
 ###########################################################
 if __name__ == "__main__":
  
-	_input_pdb, _prefix, _string_sel,_r, _depth_water,_bu, _bw, _fit_lipid, _keep_nwaters = parse_cmdline(sys.argv[1:])
+	_input_pdb, _prefix, _string_sel, _type, _r, _depth_water, _bu, _bw, _fit_lipid, _keep_nwaters = parse_cmdline(sys.argv[1:])
 	
-	main_func(_input_pdb, _string_sel,_prefix,_r, _bu, _bw,_depth_water,_fit_lipid, _keep_nwaters)
+	main_func(_input_pdb, _string_sel, _type, _prefix, _r, _bu, _bw, _depth_water, _fit_lipid, _keep_nwaters)
 	
 	exit()
