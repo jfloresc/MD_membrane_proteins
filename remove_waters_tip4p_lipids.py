@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # after solvation of a bilayer by tleap, water molecules should be removed from the sides
 # this script assumes an input PDB solvated by tleap. 
 # main variables in the __main__ function
@@ -32,6 +32,7 @@
 import math
 import optparse
 import sys
+import copy 
 
 def parse_cmdline(cmdlineArgs):
 	usage = "Usage: python remove_waters.py [options]"
@@ -144,9 +145,13 @@ def isSelection(line, selection):
 			return True
 		return False
 	
-def findmaxmin(name_file, selection):
-	with open(name_file,'r') as f:
-		infile = f.readlines()
+def findmaxmin(name_file, selection, debug=True):
+	# function receives a file or a list of lines
+	if isinstance(name_file, str):
+		with open(name_file,'r') as f:
+			infile = f.readlines()
+	else:
+		infile = name_file
 
 	X, Y, Z = [], [], []
 	for line in infile:
@@ -156,16 +161,15 @@ def findmaxmin(name_file, selection):
 				Y.append(getY(line))
 				Z.append(getZ(line))
 	max_x = max(X)
-	min_x = min(X)
 	max_y = max(Y)
-	min_y = min(Y)
 	max_z = max(Z)
+	min_x = min(X)
+	min_y = min(Y)
 	min_z = min(Z)
-	print "Maximum of selection"
-	print "X: ", max_x, "Y: ", max_y, "Z: ",max_z
-	print "Minimum of selection"
-	print "X: ", min_x, "Y: ", min_y, "Z: ",min_z
-	return [max_x,max_y,max_z], [min_x,min_y,min_z]
+	if debug:
+		print("Maximum of selection X: ", max_x, "Y: ", max_y, "Z: ", max_z)
+		print("Minimum of selection X: ", min_x, "Y: ", min_y, "Z: ", min_z)
+	return [max_x, max_y, max_z], [min_x, min_y, min_z]
 
 def isLipidInsideWaterBox(tempx,tempy,tempz,max_coord,min_coord,radius):
 # modify this function or construct a new one for more complicated solvation boxes
@@ -199,6 +203,19 @@ def isInsideBox(max_coord, min_coord, tempx, tempy, tempz, radius, depth):
 	#vxy=[False for i,j in tempx,tempy if ((i > max_coord[0] and j > max_coord[1]) or (i < min_coord[0] and j < min_coord[1]) )]
 	vz = [False for i in tempz if (i < (max_coord[2]-depth) and i > (min_coord[2]+depth))]
 	if (len(vx) == 0 and len(vy) == 0 and len(vz) == 0):
+		return True
+	return False
+
+def isInsidePeelingBox(max_coord, min_coord, tempx, tempy, tempz, radius):
+# modify this function or construct a new one for more complicated solvation boxes
+
+	coords = [tempx, tempy, tempz]
+	v_diff = [abs(max_c - min_c) for max_c, min_c in zip(max_coord, min_coord)]
+	index = v_diff.index(max(v_diff))
+
+	vindex = []
+	vindex = [False for i in coords[index] if (i > (max_coord[index]-radius) or i < (min_coord[index]+radius))]
+	if len(vindex) == 0:
 		return True
 	return False
 
@@ -315,16 +332,16 @@ def removeWater(name_file, selection, max_coord, min_coord, radius, depth, fit_l
 	return lines
 
 
-def downsizeWater(name_file, max_sel_w, min_sel_w, diff_w, delta):
+def downsizeWater(name_file, sel, diff_w, delta):
 	with open(name_file,'r') as infile:
 		lines_infile = infile.readlines()
-	dt = delta
+
+	removed_w = 0
 	while True:
+		max_sel_w, min_sel_w = findmaxmin(lines_infile, sel, debug=False)
 		j, flag_print = 0, 0
-		line_count = 0
 		lines = []
 		tempx, tempy, tempz, templines = [], [], [], []
-		removed_w = 0
 		for line in lines_infile:
 			if isAtom(line):
 				if (isWater(line)):
@@ -336,7 +353,7 @@ def downsizeWater(name_file, max_sel_w, min_sel_w, diff_w, delta):
 					# j = 3 for TIP3P, 4 for TIP4P
 					if (j==4):
 					# modify or add a new function instead of isInsideBox for more complicated solvation boxes
-						if isInsideBox(max_sel_w, min_sel_w, tempx, tempy, tempz, dt, dt) or removed_w >= diff_w:
+						if isInsidePeelingBox(max_sel_w, min_sel_w, tempx, tempy, tempz, delta) or removed_w >= diff_w:
 							[lines.append(i) for i in templines]
 						else:
 							removed_w += 1
@@ -345,15 +362,14 @@ def downsizeWater(name_file, max_sel_w, min_sel_w, diff_w, delta):
 						tempx, tempy, tempz, templines = [], [], [], []
 				else:
 					lines.append(line)
-			elif (isCard(line) and flag_print==0):
+			elif (isCard(line) and flag_print == 0):
 				lines.append(line)
-			elif (isCard(line) and flag_print==1):
-				flag_print=0
-			line_count += 1
+			elif (isCard(line) and flag_print == 1):
+				flag_print = 0
 		if removed_w  == diff_w:
-			print "Number of waters removed", removed_w
+			print("Number of waters removed", removed_w)
 			return lines
-		dt += delta
+		lines_infile = copy.deepcopy(lines)
 
 
 def addPrefix(filename, tag):
@@ -366,22 +382,22 @@ def print_object(filename, text):
 
 def main_func(filename, sel, tag, radius, thick_up, thick_down, depth, fit_lipid_flag, keep_nwaters):
 	waters = findmolwaters(filename)
-	print "Initial number of waters: ", waters
+	print("Initial number of waters: ", waters)
 	max_sel, min_sel = findmaxmin(filename, sel)
 
 	water_res = "WAT"
 	max_sel_w, min_sel_w = findmaxmin(filename, water_res)
 	
 	if keep_nwaters != -1:
-		print "Warning: Keep # waters option -n is being used, other options are ignored"
+		print("Warning: Keep # waters option -n is being used, other options are ignored\n")
 
 		diff_w = waters - keep_nwaters
 		if diff_w < 0:
-			print "Number of waters to keep larger than #waters in the pdb file"
-			exit(0)
+			print("ERROR: Number of waters to keep larger than #waters in the pdb file\n")
+			exit(1)
 
 		delta = 0.1
-		toprint = downsizeWater(filename, max_sel_w, min_sel_w, diff_w, delta)
+		toprint = downsizeWater(filename, sel, diff_w, delta)
 		
 # max_sel and min_sel could be defined manually  
 	elif (thick_up == -1 and thick_down == -1 and keep_nwaters == -1):
@@ -394,7 +410,7 @@ def main_func(filename, sel, tag, radius, thick_up, thick_down, depth, fit_lipid
 	file_out = addPrefix(filename, tag)
 	print_object(file_out, toprint)
 	waters = findmolwaters(file_out)
-	print "Final number of waters: ", waters
+	print("Final number of waters: ", waters)
 
 ###########################################################
 # __main__ module
