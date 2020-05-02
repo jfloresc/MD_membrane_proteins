@@ -18,6 +18,7 @@
 #									./remove_waters.py -p input.pdb -t tip3p -o mod -s "resid 1 to 624" -r 6.0 -d 6.0 -u 12 -w 10
 #									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" -u 10 -w 10
 #									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resname LA PC" -f 1
+# The following two examples trim number of waters down to -n n_waters
 #									./remove_waters.py -p input.pdb -t tip4p -o mod -s "resid 1 to 2000" -n  12000
 #									./remove_waters.py -p input.pdb -t tip3p -o mod -s "WAT" -n  12000
 # jose flores-canales 12/26/2014
@@ -377,7 +378,8 @@ def downsizeWater(name_file, sel, diff_w, delta, type_n):
 
 def addPrefix(filename, tag):
 	return tag + "." + filename
-	
+
+
 def print_object(filename, text):
 	with open(filename, 'w') as file_out:
 		file_out.writelines(text)
