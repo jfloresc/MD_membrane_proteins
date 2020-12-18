@@ -223,30 +223,30 @@ def removeWaterBuf(name_file,selection,max_coord,min_coord,radius,thick_up,thick
 		if isAtom(line):
 			if (isWater(line)):
 				tempx.append(getX(line))
-	tempy.append(getY(line))
-	tempz.append(getZ(line))
-	templines.append(line)
-	j+=1
-	if (j==3):
-# modify or add a new function instead of isInsideBox for more complicated solvation boxes
-		if (isInsideBoxBuffer(max_coord,min_coord,tempx,tempy,tempz,radius,thick_up,thick_down,depth)):
-			[lines.append(i) for i in templines]
-		else:
-			flag_print = 1
-		j = 0
-		tempx, tempy,tempz,templines=[],[],[],[]
+				tempy.append(getY(line))
+				tempz.append(getZ(line))
+				templines.append(line)
+				j+=1
+				if (j==3):
+				# modify or add a new function instead of isInsideBox for more complicated solvation boxes
+					if (isInsideBoxBuffer(max_coord,min_coord,tempx,tempy,tempz,radius,thick_up,thick_down,depth)):
+						[lines.append(i) for i in templines]
+					else:
+						flag_print = 1
+					j = 0
+					tempx, tempy,tempz,templines=[],[],[],[]
 # adding a new function
 			elif (isSelection(line,selection) and fit_lipid_flag == 1):
 				tempx.append(getX(line))
-	tempy.append(getY(line))
-	tempz.append(getZ(line))
-	templines.append(line)
+				tempy.append(getY(line))
+				tempz.append(getZ(line))
+				templines.append(line)
 				if (isCard(lines_infile[line_count+1])):
 					if (isLipidInsideWaterBox(tempx,tempy,tempz,max_sel_w,min_sel_w,radius)):
-			[lines.append(i) for i in templines]
-		else:
-			flag_print = 1
-		tempx, tempy,tempz,templines=[],[],[],[]
+						[lines.append(i) for i in templines]
+				else:
+					flag_print = 1
+				tempx, tempy,tempz,templines=[],[],[],[]
 # end of adding a neew function
 			else:
 				lines.append(line)
@@ -269,30 +269,30 @@ def removeWater(name_file,selection,max_coord,min_coord,radius,depth,fit_lipid_f
 		if isAtom(line):
 			if (isWater(line)):
 				tempx.append(getX(line))
-	tempy.append(getY(line))
-	tempz.append(getZ(line))
-	templines.append(line)
-	j+=1
-	if (j==3):
-# modify or add a new function instead of isInsideBox for more complicated solvation boxes
-		if (isInsideBox(max_coord,min_coord,tempx,tempy,tempz,radius,depth)):
-			[lines.append(i) for i in templines]
-		else:
-			flag_print = 1
-		j = 0
-		tempx, tempy,tempz,templines=[],[],[],[]
+				tempy.append(getY(line))
+				tempz.append(getZ(line))
+				templines.append(line)
+				j+=1
+				if (j==3):
+				# modify or add a new function instead of isInsideBox for more complicated solvation boxes
+					if (isInsideBox(max_coord,min_coord,tempx,tempy,tempz,radius,depth)):
+						[lines.append(i) for i in templines]
+					else:
+						flag_print = 1
+					j = 0
+					tempx, tempy,tempz,templines=[],[],[],[]
 # adding a new function
 			elif (isSelection(line,selection) and fit_lipid_flag == 1):
 				tempx.append(getX(line))
-	tempy.append(getY(line))
-	tempz.append(getZ(line))
-	templines.append(line)
+				tempy.append(getY(line))
+				tempz.append(getZ(line))
+				templines.append(line)
 				if (isCard(lines_infile[line_count+1])):
 					if (isLipidInsideWaterBox(tempx,tempy,tempz,max_sel_w,min_sel_w,radius)):
-			[lines.append(i) for i in templines]
-		else:
-			flag_print = 1
-		tempx, tempy,tempz,templines=[],[],[],[]
+						[lines.append(i) for i in templines]
+					else:
+						flag_print = 1
+					tempx, tempy,tempz,templines=[],[],[],[]
 # end of adding a neew function
 			else:
 				lines.append(line)
